@@ -24,6 +24,6 @@ comm -23 --check-order \
 		next="$(jq -r '.nextFileName' <<<"$r")"
 		[ "$(jq -r '.nextFileName | type' <<<"$r")" = 'null' ] && break
 	done) | \
-		parallel -j4 \
+		parallel -j4 --halt now,fail=1 \
 			backblaze-b2 upload_file "$bucket" "$store/{}" "{}"
 

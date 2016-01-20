@@ -7,9 +7,6 @@ export LC_ALL=C
 bucket="$1"
 key="$2"
 
-cache=~/.cache/b2-nix-cache/exists-cache
-mkdir -p "$cache"
-
 store="$(mktemp -d)"
 trap 'rm -rf "$store"' EXIT
 

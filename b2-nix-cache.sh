@@ -6,9 +6,6 @@ bucket="$1"
 key="$2"
 derivation="${3:-./result}"
 
-cache=~/.cache/b2-nix-cache/exists-cache
-mkdir -p "$cache"
-
 store="$(mktemp -d)"
 # trap 'rm -rf "$store"' EXIT
 

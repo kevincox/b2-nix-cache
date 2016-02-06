@@ -2,18 +2,17 @@
 
 set -e
 
-export LC_ALL=C
-
 bucket="$1"
 key="$2"
+derivation="${3:-./result}"
 
 cache=~/.cache/b2-nix-cache/exists-cache
 mkdir -p "$cache"
 
 store="$(mktemp -d)"
-trap 'rm -rf "$store"' EXIT
+# trap 'rm -rf "$store"' EXIT
 
-nix-push --dest "$store" --key-file "$key" "$(nix-build)"
+nix-push --dest "$store" --key-file "$key" "$derivation"
 
 comm -23 --check-order \
 	<(find "$store" -type f | cut -c$((${#store} + 2))- | sort) \
@@ -24,6 +23,6 @@ comm -23 --check-order \
 		next="$(jq -r '.nextFileName' <<<"$r")"
 		[ "$(jq -r '.nextFileName | type' <<<"$r")" = 'null' ] && break
 	done) | \
-		parallel -j4 --halt now,fail=1 \
+		parallel -v -j4 --halt now,fail=1 \
 			backblaze-b2 upload_file "$bucket" "$store/{}" "{}"
 

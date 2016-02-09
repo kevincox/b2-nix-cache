@@ -1,3 +1,5 @@
+set -ex
+
 [ '!' -d /nix ] && bash <(curl -sS https://nixos.org/nix/install)
 . ~/.nix-profile/etc/profile.d/nix.sh
 
@@ -11,5 +13,6 @@ else
 	git clone 'https://github.com/NixOS/nixpkgs.git' $nixpkgs
 fi
 (cd "$nixpkgs" && git reset --hard "$pkgsref")
-
+rm -rf ~/.nix-defexpr
+ln -s "$nixpkgs" ~/.nix-defexpr
 export "NIX_PATH=nixpkgs=$nixpkgs"

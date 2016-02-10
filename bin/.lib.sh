@@ -1,10 +1,12 @@
 set -ex
 
+echo '## Installing Nix'
 [ '!' -d /nix ] && bash <(curl -sS https://nixos.org/nix/install)
 . ~/.nix-profile/etc/profile.d/nix.sh
 
 cache="${SEMAPHORE_CACHE_DIR:-/tmp/b2-nix-cache-build-cache}"
 
+echo '## Preparing Desired nixpkgs'
 nixpkgs="$cache/nixpkgs"
 pkgsref="$(cat nixpkgs)"
 if [ -d "$nixpkgs" ]; then

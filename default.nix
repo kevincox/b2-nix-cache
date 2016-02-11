@@ -24,6 +24,7 @@ stdenv.mkDerivation {
 				coreutils
 				backblaze-b2
 				findutils
+				jq
 				parallel
 				nix
 			]}

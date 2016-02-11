@@ -7,7 +7,7 @@ key="$2"
 derivation="${3:-./result}"
 
 store="$(mktemp -d)"
-# trap 'rm -rf "$store"' EXIT
+trap 'rm -rf "$store"' EXIT
 
 nix-push --dest "$store" --key-file "$key" "$derivation"
 

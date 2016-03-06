@@ -4,12 +4,23 @@ set -e
 
 bucket="$1"
 key="$2"
-derivation="${3:-./result}"
+shift 2
+
+if [ -n "$*" ]; then
+	paths=("$@")
+else
+	paths=(result*)
+fi
+
+echo "Pushing the following paths to the cache:"
+for p in "${paths[@]}"; do
+	echo "  $p -> $(realpath "$p")"
+done
 
 store="$(mktemp -d)"
 trap 'rm -rf "$store"' EXIT
 
-nix-push --dest "$store" --key-file "$key" "$derivation"
+nix-push --dest "$store" --key-file "$key" "${paths[@]}"
 
 comm -23 --check-order \
 	<(find "$store" -type f | cut -c$((${#store} + 2))- | sort) \

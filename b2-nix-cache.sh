@@ -17,20 +17,26 @@ for p in "${paths[@]}"; do
 	echo "  $p -> $(realpath "$p")"
 done
 
-store="$(mktemp -d)"
-trap 'rm -rf "$store"' EXIT
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+store="$tmp/store"
 
 nix-push --dest "$store" --key-file "$key" "${paths[@]}"
 
-comm -23 --check-order \
-	<(find "$store" -type f | cut -c$((${#store} + 2))- | sort) \
-	<(while :; do
-		r="$(backblaze-b2 list_file_names "$bucket" "$next" 1000)"
-		jq -r '.files[].fileName' <<<"$r"
-		
-		next="$(jq -r '.nextFileName' <<<"$r")"
-		[ "$(jq -r '.nextFileName | type' <<<"$r")" = 'null' ] && break
-	done) | \
-		parallel -v -j1 --retries 3 \
-			backblaze-b2 upload_file "$bucket" "$store/{}" "{}"
+# Get a list of local files.
+find "$store" -type f | cut -c$((${#store} + 2))- | sort >"$tmp/local"
+
+# Get a list of remote files.
+while :; do
+	r="$(backblaze-b2 list_file_names "$bucket" "$next" 1000)"
+	jq -r '.files[].fileName' <<<"$r" >>"$tmp/remote"
+	
+	next="$(jq -r '.nextFileName' <<<"$r")"
+	[ "$(jq -r '.nextFileName | type' <<<"$r")" = 'null' ] && break
+done
+
+# Upload missing files.
+comm -23 --check-order "$tmp/local" "$tmp/remote" | \
+	parallel -v -j1 --retries 3 \
+		backblaze-b2 upload_file "$bucket" "$store/{}" "{}"
 

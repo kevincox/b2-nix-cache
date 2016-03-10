@@ -28,7 +28,11 @@ find "$store" -type f | cut -c$((${#store} + 2))- | sort >"$tmp/local"
 
 # Get a list of remote files.
 while :; do
-	r="$(backblaze-b2 list_file_names "$bucket" "$next" 1000)"
+	r="$(backblaze-b2 list_file_names "$bucket" "$next" 1000)" || bbe=$?
+	if [[ $bbe ]]; then
+		echo "$r"
+		exit $bbe
+	fi
 	jq -r '.files[].fileName' <<<"$r" >>"$tmp/remote"
 	
 	next="$(jq -r '.nextFileName' <<<"$r")"

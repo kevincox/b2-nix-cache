@@ -23,9 +23,6 @@ stdenv.mkDerivation {
 			--set PATH ${lib.makeBinPath [
 				coreutils
 				backblaze-b2
-				findutils
-				jq
-				parallel
 				nix
 			]}
 	'';
